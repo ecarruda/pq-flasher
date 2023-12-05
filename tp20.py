@@ -6,7 +6,6 @@ Reference: https://jazdw.net/tp20
 
 import struct
 import time
-from typing import List, Optional, Tuple
 
 from panda import Panda  # type: ignore
 
@@ -30,7 +29,7 @@ class TP20Transport:
         self.panda = panda
         self.bus = bus
         self.timeout = timeout
-        self.msgs: List[Tuple[int, bytes]] = []
+        self.msgs: list[tuple[int, bytes]] = []
 
         self.tx_seq = 0
         self.rx_seq = 0
@@ -39,7 +38,7 @@ class TP20Transport:
         self.debug = debug
         self.open_channel(module)
 
-    def can_recv(self, addr: Optional[int] = None) -> bytes:
+    def can_recv(self, addr: int | None = None) -> bytes:
         """Receive messages until a message with the specified address
         is received. Messages on other addresses, or a second message
         with the specified address, will be stored and are returned
@@ -68,7 +67,7 @@ class TP20Transport:
 
         raise MessageTimeoutError("Timed out waiting for message")
 
-    def can_send(self, dat: bytes, addr: Optional[int] = None):
+    def can_send(self, dat: bytes, addr: int | None = None):
         if addr is None:
             addr = self.tx_addr
 
