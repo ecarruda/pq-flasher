@@ -4,12 +4,11 @@ VW Transport Protoc 2.0 (TP 2.0)
 Reference: https://jazdw.net/tp20
 """
 
-import time
 import struct
-from typing import Optional, List, Tuple
+import time
+from typing import List, Optional, Tuple
 
 from panda import Panda  # type: ignore
-
 
 BROADCAST_ADDR = 0x200
 
@@ -19,7 +18,14 @@ class MessageTimeoutError(TimeoutError):
 
 
 class TP20Transport:
-    def __init__(self, panda: Panda, module: int, bus: int = 0, timeout: float = 0.1, debug: bool = False):
+    def __init__(
+        self,
+        panda: Panda,
+        module: int,
+        bus: int = 0,
+        timeout: float = 0.1,
+        debug: bool = False,
+    ):
         """Create TP20Transport object and open a channel"""
         self.panda = panda
         self.bus = bus
