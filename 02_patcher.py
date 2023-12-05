@@ -1,12 +1,13 @@
 #!/usr/bin/env python3
 import struct
 from argparse import ArgumentParser
+
 import crcmod
 
 # fmt: off
 
 # (addr, orig, new (optional) )
-patches = {
+PATCHES = {
     "2501": [
         (0x0005E7A8, b"1K0909144E \x002501", b"1K0909144E \x002502"),  # Software number and version
         (0x0005E221, b"\x64", b"\x00"),  # Disengage countdown
@@ -22,12 +23,13 @@ patches = {
 }
 
 # (checksum addr, start, end)
-checksums = {
+CHECKSUMS = {
     "2501": [
         (0x05EFFC, 0x5E000, 0x5EFFC),
     ],
+
     "3501": [
-        #ASW: A000 - 5C000
+        # ASW: A000 - 5C000
         (0x05fef8, 0x0a000, 0x0afff),
         (0x05fefa, 0x0afff, 0x0bffe),
         (0x05fefc, 0x0bffe, 0x0cffd),
@@ -111,7 +113,8 @@ checksums = {
         (0x05ff98, 0x59fb0, 0x5afaf),
         (0x05ff9a, 0x5afaf, 0x5bfae),
         (0x05ff9c, 0x5bfae, 0x5c000),
-        #Calibration: 5C000 - 5EFFE
+
+        # Calibration: 5C000 - 5EFFE
         (0x05DFFC, 0x5C000, 0x5CFFF),
         (0x05DFFE, 0x5CFFF, 0x5DFFC),
         (0x05EFFE, 0x5E000, 0x5EFFE),
@@ -145,7 +148,9 @@ if __name__ == "__main__":
     parser = ArgumentParser()
     parser.add_argument("--input", required=True, help="input file to patch")
     parser.add_argument("--output", required=True, help="output file")
-    parser.add_argument("--version", default="2501", const="2501", nargs="?", choices=["2501", "3501"])
+    parser.add_argument(
+        "--version", default="2501", const="2501", nargs="?", choices=["2501", "3501"]
+    )
     args = parser.parse_args()
 
     with open(args.input, "rb") as input_fw:
@@ -153,22 +158,24 @@ if __name__ == "__main__":
 
     output_fw_s = input_fw_s
 
-    assert verify_checksums(output_fw_s, checksums[args.version])
+    assert verify_checksums(output_fw_s, CHECKSUMS[args.version])
 
-    for addr, orig, new in patches[args.version]:
+    for addr, orig, new in PATCHES[args.version]:
         length = len(orig)
         cur = input_fw_s[addr : addr + length]
 
-        assert cur == orig, f"Unexpected values in input FW {cur.hex()} expected {orig.hex()}"
+        assert (
+            cur == orig
+        ), f"Unexpected values in input FW {cur.hex()} expected {orig.hex()}"
 
         if new is not None:
             assert len(new) == length
             output_fw_s = output_fw_s[:addr] + new + output_fw_s[addr + length :]
             assert output_fw_s[addr : addr + length] == new
 
-    output_fw_s = update_checksums(output_fw_s, checksums[args.version])
+    output_fw_s = update_checksums(output_fw_s, CHECKSUMS[args.version])
 
-    assert verify_checksums(output_fw_s, checksums[args.version])
+    assert verify_checksums(output_fw_s, CHECKSUMS[args.version])
     assert len(output_fw_s) == len(input_fw_s)
 
     with open(args.output, "wb") as output_fw:

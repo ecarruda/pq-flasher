@@ -1,15 +1,16 @@
 #!/usr/bin/env python3
-import tqdm
 from argparse import ArgumentParser
 
+import tqdm
 from panda import Panda
+
+from kwp2000 import ECU_IDENTIFICATION_TYPE, KWP2000Client
 from tp20 import TP20Transport
-from kwp2000 import KWP2000Client, ECU_IDENTIFICATION_TYPE
 
 try:
-    from panda.ccp import CcpClient, BYTE_ORDER
+    from panda.ccp import BYTE_ORDER, CcpClient
 except ImportError:
-    from panda.python.ccp import CcpClient, BYTE_ORDER
+    from panda.python.ccp import BYTE_ORDER, CcpClient
 
 CHUNK_SIZE = 4
 
@@ -17,7 +18,9 @@ if __name__ == "__main__":
     parser = ArgumentParser()
     parser.add_argument("--bus", default=0, type=int, help="CAN bus number to use")
     parser.add_argument("--start-address", default=0, type=int, help="start address")
-    parser.add_argument("--end-address", default=0x5FFFF, type=int, help="end address (inclusive)")
+    parser.add_argument(
+        "--end-address", default=0x5FFFF, type=int, help="end address (inclusive)"
+    )
     parser.add_argument("--output", required=True, help="output file")
     args = parser.parse_args()
 

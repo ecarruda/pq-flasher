@@ -1,13 +1,20 @@
 #!/usr/bin/env python3
-import time
-import tqdm
-import sys
 import struct
+import sys
+import time
 from argparse import ArgumentParser
 
+import tqdm
 from panda import Panda  # type: ignore
+
+from kwp2000 import (
+    ACCESS_TYPE,
+    ECU_IDENTIFICATION_TYPE,
+    ROUTINE_CONTROL_TYPE,
+    SESSION_TYPE,
+    KWP2000Client,
+)
 from tp20 import TP20Transport
-from kwp2000 import ACCESS_TYPE, ROUTINE_CONTROL_TYPE, KWP2000Client, SESSION_TYPE, ECU_IDENTIFICATION_TYPE
 
 CHUNK_SIZE = 240
 
@@ -29,8 +36,12 @@ if __name__ == "__main__":
     parser = ArgumentParser()
     parser.add_argument("--bus", default=0, type=int, help="CAN bus number to use")
     parser.add_argument("--input", required=True, help="input to flash")
-    parser.add_argument("--start-address", default=0x5E000, type=int, help="start address")
-    parser.add_argument("--end-address", default=0x5EFFF, type=int, help="end address (inclusive)")
+    parser.add_argument(
+        "--start-address", default=0x5E000, type=int, help="start address"
+    )
+    parser.add_argument(
+        "--end-address", default=0x5EFFF, type=int, help="end address (inclusive)"
+    )
     args = parser.parse_args()
 
     with open(args.input, "rb") as input_fw:
@@ -41,12 +52,16 @@ if __name__ == "__main__":
     assert input_fw_s[-4:] != b"Ende", "Firmware is not patched"
 
     print("\n[READY TO FLASH]")
-    print("WARNING! USE AT YOUR OWN RISK! THIS COULD BREAK YOUR ECU AND REQUIRE REPLACEMENT!")
+    print(
+        "WARNING! USE AT YOUR OWN RISK! THIS COULD BREAK YOUR ECU AND REQUIRE REPLACEMENT!"
+    )
     print("before proceeding:")
-    print("* put vehicle in park, and accessory mode (your engine should not be running)")
+    print(
+        "* put vehicle in park, and accessory mode (your engine should not be running)"
+    )
     print("* ensure battery is fully charged. A full flash can take up to 15 minutes")
-    resp = input("continue [y/n]")
-    if resp.lower() != "y":
+
+    if input("continue [y/n]").lower() != "y":
         sys.exit(1)
 
     p = Panda()
@@ -118,7 +133,9 @@ if __name__ == "__main__":
     kwp_client = KWP2000Client(tp20)
 
     print("\nRequest erase results")
-    result = kwp_client.request_routine_results_by_local_identifier(ROUTINE_CONTROL_TYPE.ERASE_FLASH)
+    result = kwp_client.request_routine_results_by_local_identifier(
+        ROUTINE_CONTROL_TYPE.ERASE_FLASH
+    )
     assert result == b"\x00", "Erase failed"
 
     print("\nTransfer data")
@@ -145,7 +162,9 @@ if __name__ == "__main__":
     kwp_client.calculate_flash_checksum(args.start_address, args.end_address, checksum)
 
     print("\nRequest checksum results")
-    result = kwp_client.request_routine_results_by_local_identifier(ROUTINE_CONTROL_TYPE.CALCULATE_FLASH_CHECKSUM)
+    result = kwp_client.request_routine_results_by_local_identifier(
+        ROUTINE_CONTROL_TYPE.CALCULATE_FLASH_CHECKSUM
+    )
     assert result == b"\x00", "Checksum check failed"
 
     print("\nStop communication")

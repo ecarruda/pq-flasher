@@ -22,8 +22,6 @@ repos:
           [
             "flake8-comprehensions",
             "flake8-debugger",
-            "flake8-eradicate",
             "flake8-mutable",
-            "flake8-bugbear",
-            "flake8-docstrings"
+            "flake8-bugbear"
           ]
