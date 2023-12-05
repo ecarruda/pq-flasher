@@ -4,12 +4,10 @@ VW Transport Protoc 2.0 (TP 2.0)
 Reference: https://jazdw.net/tp20
 """
 
-import time
 import struct
-from typing import Optional, List, Tuple
+import time
 
 from panda import Panda  # type: ignore
-
 
 BROADCAST_ADDR = 0x200
 
@@ -19,12 +17,19 @@ class MessageTimeoutError(TimeoutError):
 
 
 class TP20Transport:
-    def __init__(self, panda: Panda, module: int, bus: int = 0, timeout: float = 0.1, debug: bool = False):
+    def __init__(
+        self,
+        panda: Panda,
+        module: int,
+        bus: int = 0,
+        timeout: float = 0.1,
+        debug: bool = False,
+    ):
         """Create TP20Transport object and open a channel"""
         self.panda = panda
         self.bus = bus
         self.timeout = timeout
-        self.msgs: List[Tuple[int, bytes]] = []
+        self.msgs: list[tuple[int, bytes]] = []
 
         self.tx_seq = 0
         self.rx_seq = 0
@@ -33,7 +38,7 @@ class TP20Transport:
         self.debug = debug
         self.open_channel(module)
 
-    def can_recv(self, addr: Optional[int] = None) -> bytes:
+    def can_recv(self, addr: int | None = None) -> bytes:
         """Receive messages until a message with the specified address
         is received. Messages on other addresses, or a second message
         with the specified address, will be stored and are returned
@@ -62,7 +67,7 @@ class TP20Transport:
 
         raise MessageTimeoutError("Timed out waiting for message")
 
-    def can_send(self, dat: bytes, addr: Optional[int] = None):
+    def can_send(self, dat: bytes, addr: int | None = None):
         if addr is None:
             addr = self.tx_addr
 

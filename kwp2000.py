@@ -3,6 +3,7 @@ import struct
 from enum import IntEnum
 
 from panda import Panda  # type: ignore
+
 from tp20 import TP20Transport
 
 
@@ -128,7 +129,9 @@ class KWP2000Client:
         self.transport = transport
         self.debug = debug
 
-    def _kwp(self, service_type: SERVICE_TYPE, subfunction: int = None, data: bytes = None) -> bytes:
+    def _kwp(
+        self, service_type: SERVICE_TYPE, subfunction: int = None, data: bytes = None
+    ) -> bytes:
         req = bytes([service_type])
 
         if subfunction is not None:
@@ -163,12 +166,16 @@ class KWP2000Client:
             except BaseException:
                 error_desc = resp[3:].hex()
 
-            raise NegativeResponseError("{} - {}".format(service_desc, error_desc), service_id, error_code)
+            raise NegativeResponseError(
+                "{} - {}".format(service_desc, error_desc), service_id, error_code
+            )
 
         # positive response
         if service_type + 0x40 != resp_sid:
             resp_sid_hex = hex(resp_sid) if resp_sid is not None else None
-            raise InvalidServiceIdError("invalid response service id: {}".format(resp_sid_hex))
+            raise InvalidServiceIdError(
+                "invalid response service id: {}".format(resp_sid_hex)
+            )
 
         # check subfunction
         if subfunction is not None:
@@ -176,7 +183,9 @@ class KWP2000Client:
 
             if subfunction != resp_sfn:
                 resp_sfn_hex = hex(resp_sfn) if resp_sfn is not None else None
-                raise InvalidSubFunctionError(f"invalid response subfunction: {resp_sfn_hex:x}")
+                raise InvalidSubFunctionError(
+                    f"invalid response subfunction: {resp_sfn_hex:x}"
+                )
 
         # return data (exclude service id and sub-function id)
         return resp[(1 if subfunction is None else 2) :]
@@ -192,7 +201,9 @@ class KWP2000Client:
         if not request_seed and len(security_key) == 0:
             raise ValueError("security_key is missing")
 
-        return self._kwp(SERVICE_TYPE.SECURITY_ACCESS, subfunction=access_type, data=security_key)
+        return self._kwp(
+            SERVICE_TYPE.SECURITY_ACCESS, subfunction=access_type, data=security_key
+        )
 
     def read_ecu_identifcation(self, data_identifier_type: ECU_IDENTIFICATION_TYPE):
         return self._kwp(SERVICE_TYPE.READ_ECU_IDENTIFICATION, data_identifier_type)
@@ -220,11 +231,19 @@ class KWP2000Client:
         else:
             raise ValueError(f"Invalid response {ret.hex()}")
 
-    def start_routine_by_local_identifier(self, routine_control: ROUTINE_CONTROL_TYPE, data: bytes) -> bytes:
-        return self._kwp(SERVICE_TYPE.START_ROUTINE_BY_LOCAL_IDENTIFIER, routine_control, data)
+    def start_routine_by_local_identifier(
+        self, routine_control: ROUTINE_CONTROL_TYPE, data: bytes
+    ) -> bytes:
+        return self._kwp(
+            SERVICE_TYPE.START_ROUTINE_BY_LOCAL_IDENTIFIER, routine_control, data
+        )
 
-    def request_routine_results_by_local_identifier(self, routine_control: ROUTINE_CONTROL_TYPE) -> bytes:
-        return self._kwp(SERVICE_TYPE.REQUEST_ROUTINE_RESULTS_BY_LOCAL_IDENTIFIER, routine_control)
+    def request_routine_results_by_local_identifier(
+        self, routine_control: ROUTINE_CONTROL_TYPE
+    ) -> bytes:
+        return self._kwp(
+            SERVICE_TYPE.REQUEST_ROUTINE_RESULTS_BY_LOCAL_IDENTIFIER, routine_control
+        )
 
     def erase_flash(self, start_address: int, end_address: int) -> bytes:
         if start_address > 0xFFFFFF:
@@ -234,9 +253,13 @@ class KWP2000Client:
 
         start = struct.pack(">L", start_address)[1:]
         end = struct.pack(">L", end_address)[1:]
-        return self.start_routine_by_local_identifier(ROUTINE_CONTROL_TYPE.ERASE_FLASH, start + end)
+        return self.start_routine_by_local_identifier(
+            ROUTINE_CONTROL_TYPE.ERASE_FLASH, start + end
+        )
 
-    def calculate_flash_checksum(self, start_address: int, end_address: int, checksum: int) -> bytes:
+    def calculate_flash_checksum(
+        self, start_address: int, end_address: int, checksum: int
+    ) -> bytes:
         if start_address > 0xFFFFFF:
             raise ValueError(f"invalid start_address {start_address}")
         if end_address > 0xFFFFFF:
@@ -247,7 +270,9 @@ class KWP2000Client:
         start = struct.pack(">L", start_address)[1:]
         end = struct.pack(">L", end_address)[1:]
         chk = struct.pack(">H", checksum)
-        return self.start_routine_by_local_identifier(ROUTINE_CONTROL_TYPE.CALCULATE_FLASH_CHECKSUM, start + end + chk)
+        return self.start_routine_by_local_identifier(
+            ROUTINE_CONTROL_TYPE.CALCULATE_FLASH_CHECKSUM, start + end + chk
+        )
 
     def transfer_data(self, data: bytes) -> bytes:
         return self._kwp(SERVICE_TYPE.TRANSFER_DATA, data=data)
